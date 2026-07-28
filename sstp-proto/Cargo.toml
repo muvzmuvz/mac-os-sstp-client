@@ -1,0 +1,22 @@
+[package]
+name = "sstp-proto"
+version = "0.1.0"
+edition = "2024"
+description = "SSTP + PPP protocol engine (TLS/HTTP handshake, SSTP framing, PPP negotiation, crypto) with no GUI dependencies, so it can be unit-tested without pulling in eframe/egui/wgpu."
+license = "MIT"
+
+[dependencies]
+des = "0.8"
+hmac = "0.12"
+md4 = "0.10"
+native-tls = "0.2"
+rand = "0.8"
+sha1 = "0.10"
+sha2 = "0.10"
+thiserror = "2"
+tokio = { version = "1", features = ["rt-multi-thread", "net", "time", "sync", "macros", "io-util"] }
+tokio-native-tls = "0.3"
+uuid = { version = "1", features = ["v4"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+libc = "0.2"

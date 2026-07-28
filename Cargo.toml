@@ -1,0 +1,29 @@
+[workspace]
+members = [".", "sstp-proto"]
+resolver = "2"
+
+[package]
+name = "sstp-gui"
+version = "0.1.0"
+edition = "2024"
+description = "A native, dependency-free SSTP VPN client for macOS"
+license = "MIT"
+readme = "README.md"
+
+[dependencies]
+dirs = "6.0.0"
+eframe = { version = "0.35.0", default-features = false, features = ["default_fonts", "wgpu"] }
+egui = "0.35.0"
+image = { version = "0.25.10", default-features = false, features = ["png"] }
+muda = "0.19.3"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+sstp-proto = { path = "sstp-proto" }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync"] }
+tray-icon = "0.24.1"
+winit = "0.30.13"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+libc = "0.2"
+objc2 = "0.6"
+objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSApplication", "NSTouchBar", "NSResponder"] }

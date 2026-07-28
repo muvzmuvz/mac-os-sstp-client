@@ -1,0 +1,10 @@
+/target
+/SSTP GUI.app/
+.DS_Store
+
+# Local reference copy of the GPL-2.0 sstp-client project, kept around
+# during development for cross-checking wire-format details -- not used to
+# build anything (see README.md) and deliberately excluded here so a
+# differently-licensed (MIT) repo never accidentally ships someone else's
+# GPL sources.
+/vendor/
