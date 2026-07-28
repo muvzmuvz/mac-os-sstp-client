@@ -8,6 +8,11 @@ GUI на egui. Без `pppd`, без `sstpc`, без зависимостей о
 LCP/CHAP/IPCP-переговоры, ключи MPPE, SSTP crypto-bind) реализован с нуля
 на Rust и компилируется прямо в один `.app` размером ~15МБ.
 
+<p align="center">
+  <img src="assets/screenshots/connect-screen.png" width="45%" alt="Экран подключения">
+  <img src="assets/screenshots/settings-screen.png" width="45%" alt="Экран настроек">
+</p>
+
 ## Зачем
 
 В macOS нет встроенной поддержки SSTP, а обычный обходной путь —

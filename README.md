@@ -8,6 +8,11 @@ protocol stack (TLS, HTTP handshake, SSTP framing, LCP/CHAP/IPCP negotiation,
 MPPE keys, SSTP's crypto-bind) is implemented from scratch in Rust and
 compiled straight into a single ~15MB `.app`.
 
+<p align="center">
+  <img src="assets/screenshots/connect-screen.png" width="45%" alt="Connect screen">
+  <img src="assets/screenshots/settings-screen.png" width="45%" alt="Settings screen">
+</p>
+
 ## Why
 
 macOS has no built-in SSTP support, and the usual workaround —
