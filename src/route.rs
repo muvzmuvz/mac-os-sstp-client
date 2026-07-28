@@ -183,7 +183,7 @@ pub fn heal_route_if_broken(notify_on_recovery: bool) {
             if has_default_route() {
                 append_to(&vpn_log_path(), &format!("default route restored (attempt {attempt}/{MAX_ATTEMPTS})"));
                 if notify_on_recovery {
-                    crate::elevate::show_notification("SSTP GUI", "Восстановлен доступ в интернет после сбоя VPN");
+                    crate::elevate::show_notification(crate::i18n::t().notif_app_name, crate::i18n::t().notif_restored_after_failure);
                 }
                 clear_route_snapshot();
                 return;
@@ -194,6 +194,6 @@ pub fn heal_route_if_broken(notify_on_recovery: bool) {
         }
         append_to(&vpn_log_path(), "failed to restore default route automatically after retries, keeping snapshot for the next attempt");
         log_network_diagnostics("heal: restore failed after retries");
-        crate::elevate::show_notification("SSTP GUI", "Не удалось восстановить интернет автоматически, см. лог");
+        crate::elevate::show_notification(crate::i18n::t().notif_app_name, crate::i18n::t().notif_restore_failed);
     });
 }
