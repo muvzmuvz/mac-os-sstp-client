@@ -1,4 +1,5 @@
 mod elevate;
+mod i18n;
 mod ipc;
 mod keychain;
 mod log;
@@ -37,7 +38,7 @@ struct Profile {
 
 impl Profile {
     fn blank(n: usize) -> Self {
-        Profile { id: gen_id(), name: format!("Сервер {n}"), server: String::new(), username: String::new() }
+        Profile { id: gen_id(), name: format!("{} {n}", i18n::t().default_server_name_prefix), server: String::new(), username: String::new() }
     }
 }
 
@@ -121,17 +122,17 @@ struct Tray {
 
 fn build_tray() -> Tray {
     let menu = Menu::new();
-    let status = MenuItem::new("\u{25CF} Disconnected", false, None);
-    let connect = MenuItem::new("Connect", true, None);
-    let disconnect = MenuItem::new("Disconnect", false, None);
-    let show = MenuItem::new("Show Window", true, None);
-    let quit = MenuItem::new("Quit", true, None);
+    let status = MenuItem::new(i18n::t().tray_status_disconnected, false, None);
+    let connect = MenuItem::new(i18n::t().tray_connect, true, None);
+    let disconnect = MenuItem::new(i18n::t().tray_disconnect, false, None);
+    let show = MenuItem::new(i18n::t().tray_show_window, true, None);
+    let quit = MenuItem::new(i18n::t().tray_quit, true, None);
     menu.append_items(&[&status, &muda::PredefinedMenuItem::separator(), &connect, &disconnect, &muda::PredefinedMenuItem::separator(), &show, &quit])
         .unwrap();
     let icon = TrayIconBuilder::new()
         .with_menu(Box::new(menu))
         .with_icon(make_dot_icon([140, 140, 140, 255]))
-        .with_tooltip("SSTP GUI: Disconnected")
+        .with_tooltip(format!("{}: {}", i18n::t().notif_app_name, i18n::t().tray_status_disconnected))
         .build()
         .expect("failed to build tray icon");
     Tray { _icon: icon, items: TrayItems { status, connect, disconnect, show, quit } }
@@ -254,7 +255,7 @@ impl SstpApp {
         std::thread::spawn(move || {
             if profile.server.is_empty() || profile.username.is_empty() || password.is_empty() {
                 append_to(&vpn_log_path(), "connect aborted: server/username/password not set");
-                show_notification("SSTP GUI", "Заполните сервер, логин и пароль");
+                show_notification(i18n::t().notif_app_name, i18n::t().fill_server_username_password);
                 *vpn_status.lock().unwrap() = VpnStatus::Disconnected;
                 busy.store(false, Ordering::SeqCst);
                 return;
@@ -396,9 +397,9 @@ impl SstpApp {
         let status = *self.vpn_status.lock().unwrap();
         let busy = self.busy.load(Ordering::SeqCst);
         let (label, rgba) = match status {
-            VpnStatus::Disconnected => ("\u{25CF} Disconnected", [140, 140, 140, 255]),
-            VpnStatus::Connecting => ("\u{25CF} Connecting…", [230, 180, 40, 255]),
-            VpnStatus::Connected => ("\u{25CF} Connected", [40, 190, 90, 255]),
+            VpnStatus::Disconnected => (i18n::t().tray_status_disconnected, [140, 140, 140, 255]),
+            VpnStatus::Connecting => (i18n::t().tray_status_connecting, [230, 180, 40, 255]),
+            VpnStatus::Connected => (i18n::t().tray_status_connected, [40, 190, 90, 255]),
         };
         tray.items.status.set_text(label);
         tray.items.connect.set_enabled(!busy && status == VpnStatus::Disconnected);
@@ -701,7 +702,7 @@ impl SstpApp {
                 }
             });
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if gear_icon_button(ui).on_hover_text("Настройки").clicked() {
+                if gear_icon_button(ui).on_hover_text(i18n::t().settings_hover).clicked() {
                     self.view = ViewMode::Settings;
                 }
                 ui.add_space(4.0);
@@ -723,17 +724,17 @@ impl SstpApp {
                 }
             }
             let hover_text = match status {
-                VpnStatus::Disconnected => "Подключиться",
-                VpnStatus::Connecting => "Отменить",
-                VpnStatus::Connected => "Отключиться",
+                VpnStatus::Disconnected => i18n::t().connect,
+                VpnStatus::Connecting => i18n::t().cancel,
+                VpnStatus::Connected => i18n::t().disconnect,
             };
             response.on_hover_text(hover_text);
 
             ui.add_space(20.0);
             let (status_text, status_color) = match status {
-                VpnStatus::Disconnected => ("Не подключено", egui::Color32::from_rgb(0x9A, 0x9E, 0xA6)),
-                VpnStatus::Connecting => ("Подключение…", egui::Color32::from_rgb(0xE6, 0xB4, 0x28)),
-                VpnStatus::Connected => ("Подключено", egui::Color32::from_rgb(0x34, 0xD1, 0x70)),
+                VpnStatus::Disconnected => (i18n::t().not_connected, egui::Color32::from_rgb(0x9A, 0x9E, 0xA6)),
+                VpnStatus::Connecting => (i18n::t().connecting, egui::Color32::from_rgb(0xE6, 0xB4, 0x28)),
+                VpnStatus::Connected => (i18n::t().connected, egui::Color32::from_rgb(0x34, 0xD1, 0x70)),
             };
             ui.label(egui::RichText::new(status_text).size(22.0).strong().color(status_color));
 
@@ -759,14 +760,14 @@ impl SstpApp {
         let can_go_back = self.config.selected_profile().is_some();
         egui::ScrollArea::vertical().show(ui, |ui| {
             ui.horizontal(|ui| {
-                if can_go_back && back_arrow_button(ui).on_hover_text("Назад").clicked() {
+                if can_go_back && back_arrow_button(ui).on_hover_text(i18n::t().back).clicked() {
                     self.view = ViewMode::Connect;
                 }
-                ui.heading("Настройки");
+                ui.heading(i18n::t().settings);
             });
             ui.add_space(12.0);
 
-            ui.label(egui::RichText::new("Серверы").strong());
+            ui.label(egui::RichText::new(i18n::t().servers).strong());
             ui.add_space(4.0);
             for profile in &self.config.profiles {
                 let selected = self.config.selected.as_deref() == Some(profile.id.as_str());
@@ -774,13 +775,13 @@ impl SstpApp {
                     if ui.selectable_label(selected, &profile.name).clicked() {
                         *pending_select = Some(profile.id.clone());
                     }
-                    if close_icon_button(ui).on_hover_text("Удалить сервер").clicked() {
+                    if close_icon_button(ui).on_hover_text(i18n::t().remove_server_hover).clicked() {
                         *pending_remove = Some(profile.id.clone());
                     }
                 });
             }
             ui.add_space(4.0);
-            if ui.add(egui::Button::new("+ Добавить сервер").min_size(egui::vec2(ui.available_width(), 0.0))).clicked() {
+            if ui.add(egui::Button::new(i18n::t().add_server).min_size(egui::vec2(ui.available_width(), 0.0))).clicked() {
                 *pending_add = true;
             }
 
@@ -796,25 +797,25 @@ impl SstpApp {
                 ui.set_width(ui.available_width());
                 let profile = self.config.selected_profile_mut().unwrap();
                 egui::Grid::new("profile_fields").num_columns(2).spacing([10.0, 8.0]).show(ui, |ui| {
-                    ui.label("Имя профиля:");
+                    ui.label(i18n::t().profile_name_label);
                     ui.text_edit_singleline(&mut profile.name);
                     ui.end_row();
 
-                    ui.label("Сервер:");
+                    ui.label(i18n::t().server_label);
                     ui.text_edit_singleline(&mut profile.server);
                     ui.end_row();
 
-                    ui.label("Логин:");
+                    ui.label(i18n::t().username_label);
                     ui.text_edit_singleline(&mut profile.username);
                     ui.end_row();
 
-                    ui.label("Пароль:");
+                    ui.label(i18n::t().password_label);
                     ui.add(egui::TextEdit::singleline(&mut self.password).password(true));
                     ui.end_row();
                 });
-                ui.checkbox(&mut self.save_password, "Сохранить пароль в Keychain");
+                ui.checkbox(&mut self.save_password, i18n::t().save_password_in_keychain);
 
-                if ui.button("Сохранить настройки").clicked() {
+                if ui.button(i18n::t().save_settings).clicked() {
                     let _ = self.config.save();
                     let id = self.config.selected.clone().unwrap();
                     if self.save_password && !self.password.is_empty() {
@@ -826,7 +827,7 @@ impl SstpApp {
             });
 
             ui.add_space(16.0);
-            ui.collapsing("Лог подключения", |ui| {
+            ui.collapsing(i18n::t().connection_log, |ui| {
                 egui::ScrollArea::vertical().max_height(220.0).stick_to_bottom(true).show(ui, |ui| {
                     let log = tail(&vpn_log_path(), 200);
                     ui.add(egui::TextEdit::multiline(&mut log.as_str()).desired_width(f32::INFINITY).font(egui::TextStyle::Monospace));
